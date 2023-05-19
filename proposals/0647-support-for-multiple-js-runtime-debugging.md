@@ -1,10 +1,10 @@
 ---
 title: Support for multiple Java Script runtime debugging
 author:
+- Karol Wąsowski @Kwasow
 - Krzysztof Piaskowy @piaskowyk
 - Tomasz Zawadzki @tomekzaw
 - Krzysztof Magiera @kmagiera
-- Karol Wąsowski @Kwasow
 date: 15-05-2023
 ---
 
@@ -12,26 +12,22 @@ date: 15-05-2023
 
 ## Summary
 
-Obecna implementacja `metro-inspector-proxy` zakłada istnienie tylko jednego runtime w aplikacji. W przypadku jeśli zewnętrzna biblioteka wtorzy własny runtime, np Reanimated, nie ma mozliwości debugowania takiego runtime. Modyfikujac kod metro mozna wspierac dowolną ilość runtime w aplikacji.
+The current implementation of metro-inspector-proxy assumes the existence of only one runtime in the application. If an external library creates its own runtime, such as Reanimated, there is no possibility to debug that runtime. By modifying the Metro implementation, any runtimes in the application will be debugable.
 
 ## Basic example
 
-Reaniamted library creates own runtime, and with current implementation of `metro-inspector-proxy` this runtime is unable to debugging via Chrome DevTools.
+The Reanimated library creates its Java Script (Hermes) runtime. With the current implementation of `metro-inspector-proxy`, debugging this runtime via Chrome DevTools isn't possible.
 
 ## Motivation
 
-Niektóre biblitek, np Reanimated tworzą własne Runtime, a przy obecnej implementacji `metro inspector proxy` nie ma możliwości debugowania tych runtimów. Chciałbym, aby `metro inspector proxy` umożliwiało debugowanie dowolnego runtime istniejącego w aplikacji React Native. To polepszy developer experience, poniewaz bedzie mozna debugowac kod jsa wykonywany na dowlonym runtime. Similar issues may be encountered by brownfield apps, which can have multiple JS runtimes
+Some libraries, like Reanimated, create their own runtime, and with the current implementation of metro-inspector-proxy, debugging these runtimes isn't possible. This issue can also be encountered in brownfield apps, which might have multiple JavaScript runtimes. This limitation hampers the developer experience, as developers using libraries with custom runtimes can't use a debugger to inspect the code being executed. I would like to see metro-inspector-proxy updated to allow debugging of any JavaScript Hermes runtime within a React Native application.
 
 ## Detailed design
 
-This is the bulk of the RFC. Explain the design in enough detail for somebody familiar with React Native to understand, and for somebody familiar with the implementation to implement. This should get into specifics and corner-cases, and include examples of how the feature is used. Any new terminology should be defined here.
+In the current implementation of metro-inspector-proxy, information about the existing runtime is stored in a data structure called a page. However, this implementation assumes that there is only one page in the application. The solution to this problem involves using a list of pages to enable the registration of more than one runtime. When a Hermes runtime is created, if enableDebugging is called on it, it tries to send information about the creation of a new page via a WebSocket. Previously, the metro inspector accepted only React Native runtimes - identified by the runtime name provided as a string. By removing this limitation, we have allowed the registration of any runtime.
 
-I've updated the implementation of Device.js in the metro-inspector-proxy package for it to be more general. Previously it would only create a “virtual” runtime for the Hermes React Native runtime. Now it uses a map and dynamically creates a reloadable “virtual” runtime for every registered runtime and then handles reloads for all of them.
-
-W obecnej implementacji `metro inspector proxy` informacje o istniejącym runtime są przechowywane w sktruktorzye danych nazywaną page. Implementacja natomiast zaklada istnienie tylko jednej page w aplikacji. Rozwiązaniem tego problemu jest uzycie listy stron i umozliwienie aplikacji zarejestrowanie więcej niz jednego runtime. Hermes runtime podczas tworzenia, jeśli wywoła się na nim enableDebugging probuje wyslac przez webSocketa informacje o strzoweniu nowej strony. natomias metro inspector akceptował tylko runtime react native - identyfikowal go przez nazwę runtime podaną jako string. Usunęliśmy to ograniczenie, i tym samym pozwoliło to nam na zarejestrowanie dowolnego runtime.
-
-@kwasow przygotował już PRa który implementuje tę funkcjonalność: https://github.com/facebook/metro/pull/864
+@kwasow has already prepared a PR that implements this functionality: https://github.com/facebook/metro/pull/864 The PR is waiting for review.
 
 ## Adoption strategy
 
-This feature implementation doesn't require any additional steps by aplication or library developers. It is fullcy backward compatible. Uzywamy w reaniamted customowego patcha do metro juz od roku i nie napotkaliśmy się na żadne problemy, ooraz nie wymagało to od nas ządnych doatkowych kroków. 
+The implementation of this feature doesn't require any additional steps from application or library developers and is fully backward compatible. In Reanimated, we have been using a custom patch for Metro for over a year without encountering any issues, and it hasn't required any extra steps from us.
