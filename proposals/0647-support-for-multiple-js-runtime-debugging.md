@@ -1,9 +1,10 @@
 ---
 title: Support for multiple Java Script runtime debugging
 author:
-- Krzysztof Piaskowy
-- Tomasz Zawadzki
-- Krzysztof Magiera
+- Krzysztof Piaskowy @piaskowyk
+- Tomasz Zawadzki @tomekzaw
+- Krzysztof Magiera @kmagiera
+- Karol Wąsowski @Kwasow
 date: 15-05-2023
 ---
 
