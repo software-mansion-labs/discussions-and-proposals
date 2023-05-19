@@ -12,50 +12,26 @@ date: 15-05-2023
 
 ## Summary
 
-Brief explanation of the change.
+Obecna implementacja `metro-inspector-proxy` zakłada istnienie tylko jednego runtime w aplikacji. W przypadku jeśli zewnętrzna biblioteka wtorzy własny runtime, np Reanimated, nie ma mozliwości debugowania takiego runtime. Modyfikujac kod metro mozna wspierac dowolną ilość runtime w aplikacji.
 
 ## Basic example
 
-If the proposal involves a new or changed API, include a basic code example. Omit this section if it's not applicable.
+Reaniamted library creates own runtime, and with current implementation of `metro-inspector-proxy` this runtime is unable to debugging via Chrome DevTools.
 
 ## Motivation
 
-Why are we doing this? What use cases does it support? What is the expected outcome?
-
-Please focus on explaining the motivation so that if this RFC is not accepted, the motivation could be used to develop alternative solutions. In other words, enumerate the constraints you are trying to solve without coupling them too closely to the solution you have in mind.
+Niektóre biblitek, np Reanimated tworzą własne Runtime, a przy obecnej implementacji `metro inspector proxy` nie ma możliwości debugowania tych runtimów. Chciałbym, aby `metro inspector proxy` umożliwiało debugowanie dowolnego runtime istniejącego w aplikacji React Native. To polepszy developer experience, poniewaz bedzie mozna debugowac kod jsa wykonywany na dowlonym runtime. Similar issues may be encountered by brownfield apps, which can have multiple JS runtimes
 
 ## Detailed design
 
 This is the bulk of the RFC. Explain the design in enough detail for somebody familiar with React Native to understand, and for somebody familiar with the implementation to implement. This should get into specifics and corner-cases, and include examples of how the feature is used. Any new terminology should be defined here.
 
-## Drawbacks
+I've updated the implementation of Device.js in the metro-inspector-proxy package for it to be more general. Previously it would only create a “virtual” runtime for the Hermes React Native runtime. Now it uses a map and dynamically creates a reloadable “virtual” runtime for every registered runtime and then handles reloads for all of them.
 
-Why should we _not_ do this? Please consider:
+W obecnej implementacji `metro inspector proxy` informacje o istniejącym runtime są przechowywane w sktruktorzye danych nazywaną page. Implementacja natomiast zaklada istnienie tylko jednej page w aplikacji. Rozwiązaniem tego problemu jest uzycie listy stron i umozliwienie aplikacji zarejestrowanie więcej niz jednego runtime. Hermes runtime podczas tworzenia, jeśli wywoła się na nim enableDebugging probuje wyslac przez webSocketa informacje o strzoweniu nowej strony. natomias metro inspector akceptował tylko runtime react native - identyfikowal go przez nazwę runtime podaną jako string. Usunęliśmy to ograniczenie, i tym samym pozwoliło to nam na zarejestrowanie dowolnego runtime.
 
-- implementation cost, both in term of code size and complexity
-- whether the proposed feature can be implemented in user space
-- the impact on teaching people React Native
-- integration of this feature with other existing and planned features
-- cost of migrating existing React Native applications (is it a breaking change?)
-
-There are tradeoffs to choosing any path. Attempt to identify them here.
-
-## Alternatives
-
-What other designs have been considered? Why did you select your approach?
+@kwasow przygotował już PRa który implementuje tę funkcjonalność: https://github.com/facebook/metro/pull/864
 
 ## Adoption strategy
 
-If we implement this proposal, how will existing React Native developers adopt it? Is this a breaking change? Can we write a codemod? Should we coordinate with other projects or libraries?
-
-## How we teach this
-
-What names and terminology work best for these concepts and why? How is this idea best presented? As a continuation of existing React patterns?
-
-Would the acceptance of this proposal mean the React Native documentation must be re-organized or altered? Does it change how React Native is taught to new developers at any level?
-
-How should this feature be taught to existing React Native developers?
-
-## Unresolved questions
-
-Optional, but suggested for first drafts. What parts of the design are still TBD?
+This feature implementation doesn't require any additional steps by aplication or library developers. It is fullcy backward compatible. Uzywamy w reaniamted customowego patcha do metro juz od roku i nie napotkaliśmy się na żadne problemy, ooraz nie wymagało to od nas ządnych doatkowych kroków. 
