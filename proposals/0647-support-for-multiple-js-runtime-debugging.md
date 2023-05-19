@@ -12,15 +12,15 @@ date: 15-05-2023
 
 ## Summary
 
-The current implementation of `metro-inspector-proxy` assumes the existence of only one runtime in the React Native application. In some cases, an application can have more than just one JavaScript Runtime. But debugging these additional runtimes via Chrome DevTools is not possible.
+The current implementation of `metro-inspector-proxy` assumes there is only one runtime in the React Native application. In some cases, an application can have more than just one JavaScript Runtime. Debugging these additional runtimes via Chrome DevTools is currently not possible.
 
 ## Motivation
 
-Some libraries, like Reanimated library, create their runtime, and with the current implementation of `metro-inspector-proxy`, debugging these runtimes isn't possible. This issue can also be encountered in brownfield apps, which might have multiple JavaScript runtimes. This limitation of the Metro server has a negative impact on the developer experience, as developers using libraries with custom runtimes can't use Chrome DevTools to inspect the code being executed. We would like to see `metro-inspector-proxy` updated to allow debugging of any JavaScript Hermes runtime that exists in React Native application.
+Some libraries, like Reanimated, create their runtime, and with the current implementation of `metro-inspector-proxy`, debugging these runtimes is not possible. Multiple JavaScript runtimes might also be encountered in brownfield apps. This limitation of the Metro server has a negative impact on the developer experience, as developers using libraries with custom runtimes can not use Chrome DevTools to inspect the code being executed. We would like to see `metro-inspector-proxy` updated to allow debugging of any JavaScript Hermes runtime that exists in React Native application.
 
 ## Detailed design
 
-The `metro-inspector-proxy` stores information about the existing runtime in a data structure called a `page`. However, current implementation can store only one page per the application. This problem can be solved by saving information about the pages in a list. This will allow us to register more than one page per application.
+The `metro-inspector-proxy` stores information about the existing runtime in a data structure called a `page`. However, current implementation can store only one page per the application which is limiting. To allow the registration of more pages one just save them in a list.
 
 When a Hermes runtime is created, and `enableDebugging` is called on it.
 ```cpp
@@ -37,4 +37,4 @@ The PR is waiting for review.
 
 ## Adoption strategy
 
-The implementation of this feature doesn't require any additional steps from application or library developers and is fully backward compatible. In Reanimated, we have been using a custom patch for Metro for almost a year without encountering any issues related to thiose changes.
+The implementation of this feature does not require any additional steps from application or library developers as it is fully backward compatible. In Reanimated, we have been using a custom patch for Metro for almost a year without encountering any issues related to thiose changes.
